@@ -5,5 +5,3 @@ class UserForm(StatesGroup):
     goal = State()
     weight = State()
     height = State()
-    gender = State()
-    activity = State()

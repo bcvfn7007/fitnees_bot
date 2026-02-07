@@ -6,6 +6,5 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 PAYMENT_TOKEN = os.getenv("PAYMENT_TOKEN")
 
-
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN missing")
