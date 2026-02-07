@@ -70,12 +70,9 @@ async def set_goal(callback: CallbackQuery, state: FSMContext):
     goal = callback.data.split("_")[1]
     await state.update_data(goal=goal)
 
-    data = await state.get_data()
-    lang = data["language"]
-
+    lang = (await state.get_data())["language"]
     await callback.message.answer(TEXTS[lang]["ask_weight"])
     await state.set_state(UserForm.weight)
-
 
 # ---------- weight ----------
 
@@ -86,4 +83,58 @@ async def get_weight(message: Message, state: FSMContext):
         return
 
     await state.update_data(weight=int(message.text))
-    lang = (await state.get_data(_
+    lang = (await state.get_data())["language"]
+
+    await message.answer(TEXTS[lang]["ask_height"])
+    await state.set_state(UserForm.height)
+
+# ---------- height ----------
+
+@dp.message(UserForm.height)
+async def get_height(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer("Send a number 🙂")
+        return
+
+    await state.update_data(height=int(message.text))
+    data = await state.get_data()
+
+    menu = generate_menu(data)
+    await message.answer("🍽 Your daily menu:\n\n" + menu)
+
+    await state.clear()
+
+# ---------- buy ----------
+
+@dp.message(Command("buy"))
+async def buy(message: Message):
+    prices = [LabeledPrice(label="Fitness subscription", amount=10000)]
+
+    await bot.send_invoice(
+        chat_id=message.chat.id,
+        title="Fitness subscription 💪",
+        description="Access for 30 days",
+        payload="fitness_sub",
+        provider_token=PAYMENT_TOKEN,
+        currency="UZS",
+        prices=prices,
+    )
+
+# ---------- payment ----------
+
+@dp.pre_checkout_query()
+async def pre_checkout(pre_checkout: PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout.id, ok=True)
+
+@dp.message(F.successful_payment)
+async def success(message: Message):
+    give_subscription(message.from_user.id)
+    await message.answer("✅ Payment successful! Access unlocked.")
+
+# ---------- run ----------
+
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
