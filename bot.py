@@ -70,9 +70,12 @@ async def set_goal(callback: CallbackQuery, state: FSMContext):
     goal = callback.data.split("_")[1]
     await state.update_data(goal=goal)
 
-    lang = (await state.get_data())["language"]
+    data = await state.get_data()
+    lang = data["language"]
+
     await callback.message.answer(TEXTS[lang]["ask_weight"])
     await state.set_state(UserForm.weight)
+
 
 # ---------- weight ----------
 
